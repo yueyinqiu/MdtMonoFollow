@@ -8,7 +8,9 @@ bXNjaAF4nAFYA6f8AAMAAQMABG5hbWUADOmihuWFu+efv+acugALZGVzY3JpcHRpb24AAAAGbGFiZWxz
 
 `script.ts` 是使用 [mlogjs](https://mlogjs.github.io/mlogjs/) 写的处理器代码。
 
-默认开启，按钮可以关闭。重新开启时会重新绑定玩家和单位。
+---
+
+建造好了之后默认是关闭的。按下按钮可以开启。每次重新开启时会重新绑定玩家和单位。
 
 处理器的第一行可以设置领养什么单位，默认是独影。
 
