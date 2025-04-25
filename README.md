@@ -1,4 +1,4 @@
-领养一个小小矿机！
+领养一个小小矿机！（就是让矿机跟随你）
 
 `blueprint.msch` 是导出的蓝图。也可以直接复制这个：
 
@@ -7,3 +7,12 @@ bXNjaAF4nAFYA6f8AAMAAQMABG5hbWUADOmihuWFu+efv+acugALZGVzY3JpcHRpb24AAAAGbGFiZWxz
 ```
 
 `script.ts` 是使用 [mlogjs](https://mlogjs.github.io/mlogjs/) 写的处理器代码。
+
+默认开启，按钮可以关闭。重新开启时会重新绑定玩家和单位。
+
+处理器的第一行可以设置领养什么单位，默认是独影。
+
+第二行可以填写玩家名。填写了就只会跟随这个玩家。默认是 `null` ，在启动的时候，谁在处理器边上就跟随谁。
+
+第三行可以填写每次循环间隔多久，包括查找玩家、绑定单位、控制单位、检查按钮都会受到影响。
+
