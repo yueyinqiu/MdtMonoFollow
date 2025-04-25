@@ -1,6 +1,6 @@
 let inputExpectedUnit: UnitSymbol = Units.mono;
 let inputExpectedPlayer: string | undefined = undefined;
-let inputInterval: number = 0.1;
+let inputInterval: number = 0;
 
 function Flush() {
     const building = getBuilding("message1");
@@ -44,8 +44,11 @@ function FindPlayer(name: string | undefined, interval: number): AnyUnit | undef
 
 function EnsureUnit(unitType: UnitSymbol, interval: number): AnyUnit | undefined {
     let unit = Vars.unit;
-    if (unit !== undefined)
-        return unit;
+    if (unit !== undefined) {
+        if (unit.controlled !== ControlKind.ctrlPlayer) {
+            return unit;
+        }
+    }
 
     PrintAndFlush("MdtMonoFollow\n\nFinding Unit...");
     for (; ;) {
@@ -55,57 +58,79 @@ function EnsureUnit(unitType: UnitSymbol, interval: number): AnyUnit | undefined
         unitBind(unitType);
 
         unit = Vars.unit;
-        if (unit !== undefined)
-            return unit;
+        if (unit !== undefined) {
+            if (unit.controlled !== ControlKind.ctrlPlayer) {
+                return unit;
+            }
+        }
 
         wait(interval);
     }
 }
 
-let player: AnyUnit | undefined = undefined;
+function Run(interval: number): string {
+    const player = FindPlayer(inputExpectedPlayer, interval);
+    if (player === undefined) {
+        return "Manually Stopped";
+    }
+
+    const playerType = player.type;
+
+    for (; ;) {
+        if (!CheckSwitch()) {
+            return "Manually Stopped";
+        }
+
+        if (player.dead) {
+            SwitchOff();
+            return "Player Dead";
+        }
+        // 原本未附身，现在附身到其他东西了
+        if (player.type !== playerType) {
+            SwitchOff();
+            return "Player Dead";
+        }
+        // 原本附身现在出来了（此时 player 指的是被附身的东西）
+        if (player.name === undefined) {
+            SwitchOff();
+            return "Player Dead";
+        }
+
+        const unit = EnsureUnit(inputExpectedUnit, interval);
+        if (unit === undefined) {
+            return "Manually Stopped";
+        }
+
+        print("MdtMonoFollow\n\n");
+        print("Player: ");
+        print(player.name);
+        print("\nUnit: (");
+        print(Math.floor(unit.x));
+        print(", ");
+        print(Math.floor(unit.y));
+        print(")");
+        Flush();
+
+        unitControl.approach({
+            x: player.x,
+            y: player.y,
+            radius: 3
+        });
+        wait(interval);
+    }
+}
+
+SwitchOff();
+PrintAndFlush("MdtMonoFollow\n\nStopped. Reason: Initial State");
+
 for (; ;) {
     if (!CheckSwitch()) {
-        player = undefined;
-        PrintAndFlush("MdtMonoFollow\n\nClosed.");
         wait(inputInterval);
         continue;
     }
 
-    if (player === undefined)
-        player = FindPlayer(inputExpectedPlayer, inputInterval);
-
-    // 这里判断 player.name === undefined 是因为
-    // 玩家附身后 player 变量会指向被附身的那个东西，
-    // 但解除附身后 player 仍然指向那个不会变回来。
-    // 这时候可以通过判断 name 来知道附身解除了，
-    // 但也得重新找玩家，
-    // 这里就当成玩家死了，停止运行。
-    if (player === undefined ||
-        player.dead ||
-        player.name === undefined) {
-        SwitchOff();
-        continue;
-    }
-
-    const unit = EnsureUnit(inputExpectedUnit, inputInterval);
-    if (unit === undefined)
-        continue;
-
-    print("MdtMonoFollow\n\n");
-    print("Player:\n");
-    print(player.name);
-    print("\nUnit: \n(");
-    print(Math.floor(unit.x));
-    print(", ");
-    print(Math.floor(unit.y));
-    print(")");
+    const stopReason = Run(inputInterval);
+    print("MdtMonoFollow\n\nStopped. Reason: ");
+    print(stopReason);
     Flush();
-
-    if (unit !== Vars.unit)
-        continue;
-    unitControl.approach({
-        x: player.x,
-        y: player.y,
-        radius: 3
-    });
 }
