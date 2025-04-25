@@ -58,28 +58,28 @@ for (; ;)
     {
         player = undefined;
         PrintAndFlush("Closed.")
-        wait(0.5);
-        continue;
     }
+    else
+    {
+        if (player === undefined || player.dead)
+            player = FindPlayer(inputExpectedPlayer, inputInterval);
+        const unit = EnsureUnit(inputExpectedUnit, inputInterval);
 
-    if (player === undefined || player.dead)
-        player = FindPlayer(inputExpectedPlayer, inputInterval);
-    const unit = EnsureUnit(inputExpectedUnit, inputInterval);
+        print("Working...\n\n");
+        print("Player: ");
+        print(player.name);
+        print("\nUnit: (");
+        print(Math.floor(unit.x));
+        print(", ");
+        print(Math.floor(unit.y));
+        print(")");
+        Flush();
 
-    print("Working...\n\n");
-    print("Player: ");
-    print(player.name);
-    print("\nUnit: (");
-    print(Math.floor(unit.x));
-    print(", ");
-    print(Math.floor(unit.y));
-    print(")");
-    Flush();
-
-    unitControl.approach({
-        x: player.x,
-        y: player.y,
-        radius: 3
-    });
+        unitControl.approach({
+            x: player.x,
+            y: player.y,
+            radius: 3
+        });
+    }
     wait(inputInterval);
 }
