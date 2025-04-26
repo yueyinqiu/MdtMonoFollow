@@ -42,45 +42,45 @@ function FindPlayer(name: string | undefined, interval: number): AnyUnit | undef
     }
 }
 
-function EnsureUnit(unitType: UnitSymbol, interval: number): AnyUnit | undefined {
-    let unit = Vars.unit;
-    if (unit !== undefined) {
-        if (unit.controlled !== ControlKind.ctrlPlayer) {
-            return unit;
-        }
-    }
-
+function FindUnit(unitType: UnitSymbol, interval: number): AnyUnit | undefined {
     PrintAndFlush("MdtMonoFollow\n\nFinding Unit...");
-    for (; ;) {
+    for (; ; wait(interval)) {
         if (!CheckSwitch())
             return undefined;
 
         unitBind(unitType);
+        const unit = Vars.unit;
 
-        unit = Vars.unit;
-        if (unit !== undefined) {
-            if (unit.controlled !== ControlKind.ctrlPlayer) {
-                return unit;
-            }
+        if (unit === undefined) {
+            continue;
+        }
+        if (unit.controlled === ControlKind.ctrlPlayer) {
+            continue;
         }
 
-        wait(interval);
+        return unit;
     }
 }
 
 function Run(interval: number): string {
     const player = FindPlayer(inputExpectedPlayer, interval);
-    if (player === undefined) {
+    if (player === undefined)
         return "Manually Stopped";
-    }
-
     const playerType = player.type;
+
+    const unit = FindUnit(inputExpectedUnit, interval);
+    if (unit === undefined)
+        return "Manually Stopped";
 
     for (; ;) {
         if (!CheckSwitch()) {
             return "Manually Stopped";
         }
 
+        if (player === undefined) {
+            SwitchOff();
+            return "Player Disappeared";
+        }
         if (player.dead) {
             SwitchOff();
             return "Player Dead";
@@ -96,9 +96,17 @@ function Run(interval: number): string {
             return "Player Dead";
         }
 
-        const unit = EnsureUnit(inputExpectedUnit, interval);
         if (unit === undefined) {
-            return "Manually Stopped";
+            SwitchOff();
+            return "Unit Disappeared";
+        }
+        if (unit.dead) {
+            SwitchOff();
+            return "Unit Dead";
+        }
+        if (unit !== Vars.unit) {
+            SwitchOff();
+            return "Unit Disappeared";
         }
 
         print("MdtMonoFollow\n\n");
