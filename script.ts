@@ -57,6 +57,9 @@ function FindUnit(unitType: UnitSymbol, interval: number): AnyUnit | undefined {
         if (unit.controlled === ControlKind.ctrlPlayer) {
             continue;
         }
+        if (unit.controlled === ControlKind.ctrlProcessor) {
+            continue;
+        }
 
         return unit;
     }
@@ -129,7 +132,7 @@ function Run(interval: number): string {
 }
 
 SwitchOff();
-PrintAndFlush("MdtMonoFollow\n\nStopped. Reason: Initial State");
+PrintAndFlush("MdtMonoFollow\n\nhttps://github.com/yueyinqiu/MdtMonoFollow");
 
 for (; ;) {
     if (!CheckSwitch()) {
